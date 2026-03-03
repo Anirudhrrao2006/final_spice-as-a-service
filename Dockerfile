@@ -1,23 +1,17 @@
-# Base Python image
-FROM python:3.11-slim
+FROM python:3.10-slim
 
-# Install ngspice
-RUN apt-get update && \
-    apt-get install -y ngspice && \
-    rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y ngspice && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Install Python dependencies
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code
+# Copy the actual script
 COPY simulator.py .
 
-# Expose FastAPI port
-EXPOSE 8000
-
-# Run the API
-CMD ["uvicorn", "simulator:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use environment variables to ensure it listens on the port Render provides
+ENV PORT=10000
+CMD python -m uvicorn simulator:app --host 0.0.0.0 --port $PORT
